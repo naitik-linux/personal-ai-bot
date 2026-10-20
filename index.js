@@ -25,7 +25,7 @@ bot.on('message', async (msg) => {
     await bot.sendChatAction(chatId, 'typing');
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-3.8-flash',
       contents: text,
     });
 
