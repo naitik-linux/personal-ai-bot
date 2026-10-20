@@ -1,0 +1,41 @@
+const TelegramBot = require('node-telegram-bot-api');
+const Anthropic = require('@anthropic-ai/sdk');
+
+const token = process.env.TELEGRAM_BOT_TOKEN;
+const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
+const allowedUserId = process.env.ALLOWED_USER_IDS;
+
+const bot = new TelegramBot(token, { polling: true });
+const anthropic = new Anthropic({ apiKey: anthropicApiKey });
+
+bot.on('message', async (msg) => {
+  const chatId = msg.chat.id;
+  const userId = msg.from.id.toString();
+  const text = msg.text;
+
+  // Security check: only allow your user ID
+  if (allowedUserId && userId !== allowedUserId) {
+    bot.sendMessage(chatId, "Unauthorized access.");
+    return;
+  }
+
+  if (!text || text.startsWith('/')) return;
+
+  try {
+    await bot.sendChatAction(chatId, 'typing');
+
+    const response = await anthropic.messages.create({
+      model: "claude-3-5-sonnet-20241022",
+      max_tokens: 1024,
+      messages: [{ role: "user", content: text }],
+    });
+
+    const reply = response.content[0].text;
+    bot.sendMessage(chatId, reply);
+  } catch (error) {
+    console.error(error);
+    bot.sendMessage(chatId, "Error communicating with Claude.");
+  }
+});
+
+console.log("Personal AI Bot is running...");
