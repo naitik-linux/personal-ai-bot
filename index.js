@@ -1,10 +1,23 @@
 const TelegramBot = require('node-telegram-bot-api');
 const { GoogleGenAI } = require('@google/genai');
+const http = require('http');
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const geminiApiKey = process.env.GEMINI_API_KEY;
 const allowedUserId = process.env.ALLOWED_USER_IDS;
+const PORT = process.env.PORT || 3000;
 
+// Create a dummy HTTP server so Render detects an open port and passes its health check
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  res.end('Personal AI Bot is running!\n');
+});
+
+server.listen(PORT, () => {
+  console.log(`HTTP server is listening on port ${PORT}`);
+});
+
+// Start the Telegram Bot with polling
 const bot = new TelegramBot(token, { polling: true });
 const ai = new GoogleGenAI({ apiKey: geminiApiKey });
 
